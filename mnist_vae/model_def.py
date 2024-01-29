@@ -29,7 +29,7 @@ class Hparams(object):
         self.n_hidden_gener_2 = 500  # 2nd layer decoder neurons
         self.n_input = 784           # MNIST data input (img shape: 28*28)
         self.n_z = 20                # dimensionality of latent space
-        self.transfer_fct = nn.softplus
+        self.transfer_fct = F.softplus
 
 
 class Encoder(nn.Module):

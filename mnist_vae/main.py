@@ -24,3 +24,4 @@ if __name__ == '__main__':
     HPARAMS.summary_epoch = 1
     HPARAMS.ckpt_epoch = 5
 
+    main(HPARAMS)
