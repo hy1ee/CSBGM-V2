@@ -52,7 +52,6 @@ def test(model, optimizer, mnist_test, epoch, best_test_loss, hparams):
 
 
 
-
 def main(hparams):
     # Set up some stuff according to hparams
     utils.print_hparams(hparams)
@@ -95,7 +94,7 @@ def main(hparams):
 
             # Training forward
             x_hat, z_mean, z_log_sigma_sq = model(x_batch_val)
-            loss, BCE, KLD = utils.get_loss(x_hat, x, z_mean, z_log_sigma_sq)
+            loss, BCE, KLD = utils.get_loss(x_hat, x_batch_val, z_mean, z_log_sigma_sq)
             loss_batch.append(loss.item())
 
             # Training Backward
@@ -111,7 +110,7 @@ def main(hparams):
 
             if batch_idx == 0:
                 # visualize reconstructed result at the beginning of each epoch
-                x_concat = torch.cat([x.view(-1, 1, 28, 28), x_hat.view(-1, 1, 28, 28)], dim=3)
+                x_concat = torch.cat([x_batch_val.view(-1, 1, 28, 28), x_hat.view(-1, 1, 28, 28)], dim=3)
                 save_image(x_concat, './%s/reconstructed-%d.png' % (hparams.result_dir, epoch + 1))
 
         # 把这一个epoch的每一个样本的平均损失存起来
