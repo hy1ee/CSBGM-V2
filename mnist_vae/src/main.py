@@ -132,7 +132,6 @@ if __name__ == '__main__':
     PARSER.add_argument('--h_dim', type=int, default='500', help='The dim of hidden')
     PARSER.add_argument('--batch_size', type=int, default='128', help='The dim of hidden')
 
-
     # Training Parameters
     PARSER.add_argument('--learning_rate', type=float, default='1e-3', help='The learning rate of optimize')
     PARSER.add_argument('--training_epochs', type=int, default='100', help='The training epochs of optimize')
@@ -142,16 +141,8 @@ if __name__ == '__main__':
 
     # Checkpoint dir
     PARSER.add_argument('--resume', type=str, default='None', help='Path to latest checkpoint')
-    PARSER.add_argument('--result_dir', type=str, default='./VAEResult', help='Output directory')
-    PARSER.add_argument('--save_dir', type=str, default='./checkPoint', help='Model saving directory')
-    
-
-    # HPARAMS.num_samples = 60000
-    # HPARAMS.learning_rate = 0.001
-    # HPARAMS.batch_size = 100
-    # HPARAMS.training_epochs = 100
-    # HPARAMS.summary_epoch = 1
-    # HPARAMS.ckpt_epoch = 5
+    PARSER.add_argument('--result_dir', type=str, default='./mnist_vae/VAEResult', help='Output directory')
+    PARSER.add_argument('--save_dir', type=str, default='./mnist_vae/checkPoint', help='Model saving directory')
 
     HPARAMS = PARSER.parse_args()
     main(HPARAMS)
