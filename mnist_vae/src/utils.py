@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader, ConcatDataset
 import torch.nn.functional as F
 
 def mnist_dataloader(hparams):
-    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+    transform = transforms.Compose([transforms.ToTensor()])
 
     # Download MNIST dataset
     train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
