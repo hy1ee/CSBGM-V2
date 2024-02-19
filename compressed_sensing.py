@@ -16,69 +16,64 @@ def main(hparams):
     l2_losses, measurement_losses = [], []
 
 
-    x_batch, _ = next(iter(mnist_train))
-    print(x_batch.shape)
+    if hparams.if_show_images:
+        model_name = [  
+                        'origin'
+                        ,'lasso'
+                        ,'vae'
+                        ,'vae_bayesian'
+                        ,'nice'
+                        ,'nice_bayesian'
+                        ]
+        for i in range(len(model_name)):
+            model_name[i] += str('_estimator')
 
-    def show_images_in_one_row(images1, images2, images3):
-        fig, axes = plt.subplots(3, len(images1), figsize=(20, 8))
-        for i, img in enumerate(images1):
-            axes[0, i].imshow(np.squeeze(img), cmap='binary')
-            axes[0, i].axis('off')
+        # The first batch
+        x_batch, _ = next(iter(mnist_train))
+        x_batch_numpy = x_batch.squeeze().numpy()
+        x_batch = x_batch.view(hparams.batch_size, hparams.n_input)
+        
+        A = np.random.randn(hparams.n_input, hparams.num_measurements) 
+        A = torch.tensor(A, dtype=torch.float32)
+        noise_batch = hparams.noise_std * np.random.randn(hparams.batch_size, hparams.num_measurements)
+        y_batch = np.matmul(x_batch, A) + noise_batch 
 
-        for i, img in enumerate(images2):
-            axes[1, i].imshow(np.squeeze(img), cmap='binary')
-            axes[1, i].axis('off')
+        estimators_list = [x_batch_numpy]
 
-        for i, img in enumerate(images3):
-            axes[2, i].imshow(np.squeeze(img), cmap='binary')
-            axes[2, i].axis('off')
-        plt.show()
+        for name in model_name:
+            x_batch_hat = None
+            if name == 'origin_estimator':    
+                continue
 
-    x_batch_numpy = x_batch.squeeze().numpy()
-    # show_images_in_one_row(x_batch_numpy)
+            if name == 'lasso_estimator':
+                x_batch_hat = mnist_estimators.lasso_estimator(A, y_batch, hparams)
+                x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)
+            
+            if name == 'vae_estimator':
+                x_batch_hat = mnist_estimators.vae_estimator(A, y_batch, hparams)
+                x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)
 
-    x_batch = x_batch.view(hparams.batch_size, hparams.n_input)  # Size: torch.size([batch_size, n_input])
-        # print(x_batch_val.shape)
+            if name == 'vae_bayesian_estimator':
+                x_batch_hat = mnist_estimators.vae_bayesian_estimator(A, y_batch, hparams)
+                x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)
 
-    
-    A = np.random.randn(hparams.n_input, hparams.num_measurements)  # 参考mnist_reconstruction.sh , 应该设定成一个列表
-    A = torch.tensor(A, dtype=torch.float32)
-    noise_batch = hparams.noise_std * np.random.randn(hparams.batch_size, hparams.num_measurements)
-    y_batch = np.matmul(x_batch, A) + noise_batch  # measurement_type在vae上设定为gaussian
+            if name == 'nice_estimator':
+                hparams.h_dim = 1000
+                x_batch_hat = mnist_estimators.nice_estimator(A, y_batch, hparams)
+                x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)
 
-    x_batch_hat = mnist_estimators.vae_estimator(A, y_batch, hparams)
-    x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28) # hparams.batch_size, 1, 
+            if name == 'nice_bayesian_estimator':
+                hparams.h_dim = 1000
+                x_batch_hat = mnist_estimators.nice_bayesian_estimator(A, y_batch, hparams)
+                x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)
+                
+            estimators_list.append(x_batch_hat)
 
-    x_batch_hat_bayes = mnist_estimators.vae_bayesian_estimator(A, y_batch, hparams)
-    x_batch_hat_bayes = x_batch_hat_bayes.reshape(hparams.batch_size, 1, 28, 28) # hparams.batch_size, 1, 
-
-
-    # print(f"x_batch_hat{x_batch_hat.shape} x_batch{x_batch_numpy.shape}")
-    # x_batch_hat_numpy = x_batch_hat.squeeze().numpy()
-    show_images_in_one_row(x_batch_numpy, x_batch_hat, x_batch_hat_bayes)
-
-
-    # plt.figure(figsize=(8, 4))
-
-    # # 将第一个数组显示在左侧
-    # plt.subplot(1, 2, 1)
-    # plt.imshow(x_batch_numpy, cmap='binary')
-    # plt.title('Image 1')
-    # plt.axis('off')
-
-    # # 将第二个数组显示在右侧
-    # plt.subplot(1, 2, 2)
-    # plt.imshow(x_batch_hat, cmap='binary')
-    # plt.title('Image 2')
-    # plt.axis('off')
-
-    # # 显示图像
-    # plt.show()
+        assert len(estimators_list) == len(model_name)
+        utils.show_images(estimators_list,model_name)
 
 
-
-
-
+    assert 1 == 2
 
 
 
@@ -154,28 +149,41 @@ if __name__ == '__main__':
     PARSER.add_argument('--batch_size', type=int, default=10, help='How many examples are processed together')
     PARSER.add_argument('--n_input', type=int, default=784, help='How many examples are processed together')
 
-    PARSER.add_argument('--num-measurements', type=int, default=400, help='number of gaussian measurements')
-    PARSER.add_argument('--noise_std', type=int, default=0.1, help='number of gaussian measurements')
+    PARSER.add_argument('--num-measurements', type=int, default=200, help='number of gaussian measurements')
+    PARSER.add_argument('--noise_std', type=float, default=0.1, help='number of gaussian measurements')
+
+    # Lasso model
+    PARSER.add_argument('--lmbd', type=float, default='0.01', help='The shape of latent variable z')
 
     # VAE model
     PARSER.add_argument('--n_z', type=int, default='20', help='The shape of latent variable z')
     PARSER.add_argument('--h_dim', type=int, default='500', help='The dim of hidden')
+    PARSER.add_argument('--vae_pretrained_model_dir', type=str, default='./mnist_vae/checkPoint/model_best.pth', help='The dim of hidden')
 
+
+    # NICE
+    PARSER.add_argument('--num_coupling_layers', type=int, default='4', help='The shape of mnist')
+    PARSER.add_argument('--use_cuda', type=str, default='True', help='The shape of mnist')
+    PARSER.add_argument('--num_net_layers', type=int, default='6', help='The shape of mnist')
+    PARSER.add_argument('--nice_pretrained_model_dir', type=str, default='./mnist_nice/checkPoint/24.pt', help='The dim of hidden')
+
+
+    # Training Config
+    PARSER.add_argument('--num_random_restarts', type=float, default=1, help='weight on z prior')
+    PARSER.add_argument('--max_update_iter', type=float, default=1000, help='weight on z prior')
     PARSER.add_argument('--mloss1_weight', type=float, default=0.0, help='L1 measurement loss weight')
     PARSER.add_argument('--mloss2_weight', type=float, default=1.0, help='L2 measurement loss weight')
     PARSER.add_argument('--zprior_weight', type=float, default=0.1, help='weight on z prior')
 
-    PARSER.add_argument('--num_random_restarts', type=float, default=5, help='weight on z prior')
-    PARSER.add_argument('--max_update_iter', type=float, default=1000, help='weight on z prior')
-
-    PARSER.add_argument('--mnist_dir', type=str, default='./mnist_vae/checkPoint/model_best.pth', help='weight on z prior')
 
     # bayesian inference
     PARSER.add_argument('--theta_loss_weight', type=float, default=0.1, help='weight on z prior')
 
+    # Show images
+    PARSER.add_argument('--if_show_images', type=bool, default=True, help='weight on z prior')
+
     HPARAMS = PARSER.parse_args()
 
     main(HPARAMS)
-    
 
 

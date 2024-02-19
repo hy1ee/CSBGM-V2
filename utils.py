@@ -1,5 +1,8 @@
 import numpy as np
 import torch
+import matplotlib.pyplot as plt 
+
+
 
 class BestKeeper(object):
     """Class to keep the best stuff"""
@@ -16,7 +19,6 @@ class BestKeeper(object):
 
     def get_best(self):
         return self.x_hat_batch_val_best
-
 
 
 def print_hparams(hparams):
@@ -52,3 +54,20 @@ def get_measurement_loss(x_hat, A, y):
     return np.mean((y - y_hat) ** 2)
 
 
+def show_images(images_list, labels):
+    """
+    The list should include various estimation methods
+    """
+
+    n = len(images_list)
+    fig, axes = plt.subplots(n, len(images_list[0]), figsize = (20, 8))
+
+    for idx, (img_list, label) in enumerate(zip(images_list, labels)):
+        for i, img in enumerate(img_list):
+
+            axes[idx, i].imshow(np.squeeze(img), cmap='binary', vmin=np.min(img), vmax=np.max(img))
+            axes[idx, i].axis('off')
+            
+        axes[idx, 0].text(-0.3, 0.5, f"{label}", fontsize=16, va='center', ha='right', transform=axes[idx, 0].transAxes)
+
+    plt.show()
