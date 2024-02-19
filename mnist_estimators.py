@@ -35,8 +35,7 @@ def vae_estimator(A, y_batch, hparams):
     model = VAE(hparams)
 
     # Load pre-trained model
-    dir = './mnist_vae/checkPoint/model_best.pth' # best model
-    checkpoint = torch.load(hparams.mnist_dir)
+    checkpoint = torch.load(hparams.vae_pretrained_model_dir)
     model.load_state_dict(checkpoint['state_dict'])
 
     optimizer = optim.Adam([z], lr = 0.01)
@@ -44,7 +43,6 @@ def vae_estimator(A, y_batch, hparams):
     best_keeper = utils.BestKeeper(hparams)
 
     for i in range(hparams.num_random_restarts):
-        # optimizer.zero_grad()
 
         for j in range(hparams.max_update_iter):
             optimizer.zero_grad()
@@ -66,9 +64,6 @@ def vae_estimator(A, y_batch, hparams):
             total_loss.backward()
             optimizer.step()
 
-            # print(f"rr {i} iter {j} total_loss {total_loss} m_loss1 {m_loss1_batch} \
-            #       m_loss2 {m_loss2_batch} zp_loss {zp_loss_batch}")
-        # print(z)
         x_hat_batch_val = model.decoder(z)
 
         y_hat_batch = torch.matmul(x_hat_batch_val, A)
@@ -92,8 +87,7 @@ def vae_bayesian_estimator(A, y_batch, hparams):
     model = VAE(hparams)
 
     # Load pre-trained model
-    dir = './mnist_vae/checkPoint/model_best.pth' # best model
-    checkpoint = torch.load(hparams.mnist_dir)
+    checkpoint = torch.load(hparams.vae_pretrained_model_dir)
     model.load_state_dict(checkpoint['state_dict'])
 
 
@@ -110,25 +104,16 @@ def vae_bayesian_estimator(A, y_batch, hparams):
         if name in val_store_dict.keys():
             val_store_dict[name] = param # param.shape
             
-    # print(val_store_dict.keys())
-    # w,b = val_store_dict['fc7.weight'], val_store_dict['fc7.bias']
-    # w6, b6 = val_store_dict['fc6.weight'], val_store_dict['fc6.bias']
-    w7, b7 = val_store_dict['fc7.weight'], val_store_dict['fc7.bias']
 
-    # w6_cons, b6_cons = w6, b6
+    w7, b7 = val_store_dict['fc7.weight'], val_store_dict['fc7.bias']
     w7_cons, b7_cons = w7, b7
-    # val_store_dict_const = [val_store_dict['fc7.weight'], val_store_dict['fc7.bias']]
-    
-    # var_list_theta = [val_store_dict['fc7.weight'], val_store_dict['fc7.bias']]
 
     optimizer = optim.Adam([z], lr = 0.01)
     optimizer_theta = optim.Adam([w7,b7], lr = 0.01)
 
-
     best_keeper = utils.BestKeeper(hparams)
 
     for i in range(hparams.num_random_restarts):
-        # optimizer.zero_grad()
 
         for j in range(hparams.max_update_iter):
             optimizer.zero_grad()
@@ -146,17 +131,13 @@ def vae_bayesian_estimator(A, y_batch, hparams):
                                 + hparams.mloss2_weight * m_loss2_batch \
                                 + hparams.zprior_weight * zp_loss_batch
             
-            theta_loss_batch = torch.mean((w7 - w7_cons)**2) + torch.mean((b7 - b7_cons)**2)
-                                
+            theta_loss_batch = torch.mean((w7 - w7_cons)**2) + torch.mean((b7 - b7_cons)**2)                                
             total_loss = torch.mean(total_loss_batch) + hparams.theta_loss_weight * theta_loss_batch
 
             total_loss.backward()
             optimizer.step()
 
-            # print(f"rr {i} iter {j} total_loss {total_loss} m_loss1 {m_loss1_batch} \
-            #       m_loss2 {m_loss2_batch} zp_loss {zp_loss_batch}")
-        # print(z)
-        # optimizer_theta.zero_grad()
+
         for j in range(hparams.max_update_iter):
             optimizer_theta.zero_grad()
             x_hat_batch = model.decoder(z)
@@ -180,8 +161,6 @@ def vae_bayesian_estimator(A, y_batch, hparams):
             total_loss.backward()
             optimizer_theta.step()    
 
-        # model.fc6.weight = torch.nn.Parameter(w6)
-        # model.fc6.bias = torch.nn.Parameter(b6)
         model.fc7.weight = torch.nn.Parameter(w7)
         model.fc7.bias = torch.nn.Parameter(b7)
         x_hat_batch_val = model.decoder(z)
@@ -190,9 +169,6 @@ def vae_bayesian_estimator(A, y_batch, hparams):
         m_loss1_batch = torch.mean(torch.abs(y_batch - y_hat_batch), 1)
         m_loss2_batch = torch.mean((y_batch - y_hat_batch)**2, 1)
         zp_loss_batch = torch.sum(z**2, 1)
-
-        # theta_loss_batch = torch.mean((w7 - w7_cons)**2) + torch.mean((b7 - b7_cons)**2)
-
 
         theta_loss_batch = torch.mean((w7 - w7_cons)**2) + torch.mean((b7 - b7_cons)**2)
         # define total loss
