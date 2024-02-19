@@ -25,8 +25,6 @@ def main(hparams):
                         ,'nice'
                         ,'nice_bayesian'
                         ]
-        for i in range(len(model_name)):
-            model_name[i] += str('_estimator')
 
         # The first batch
         x_batch, _ = next(iter(mnist_train))
@@ -42,27 +40,27 @@ def main(hparams):
 
         for name in model_name:
             x_batch_hat = None
-            if name == 'origin_estimator':    
+            if name == 'origin':    
                 continue
 
-            if name == 'lasso_estimator':
+            if name == 'lasso':
                 x_batch_hat = mnist_estimators.lasso_estimator(A, y_batch, hparams)
                 x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)
             
-            if name == 'vae_estimator':
+            if name == 'vae':
                 x_batch_hat = mnist_estimators.vae_estimator(A, y_batch, hparams)
                 x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)
 
-            if name == 'vae_bayesian_estimator':
+            if name == 'vae_bayesian':
                 x_batch_hat = mnist_estimators.vae_bayesian_estimator(A, y_batch, hparams)
                 x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)
 
-            if name == 'nice_estimator':
+            if name == 'nice':
                 hparams.h_dim = 1000
                 x_batch_hat = mnist_estimators.nice_estimator(A, y_batch, hparams)
                 x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)
 
-            if name == 'nice_bayesian_estimator':
+            if name == 'nice_bayesian':
                 hparams.h_dim = 1000
                 x_batch_hat = mnist_estimators.nice_bayesian_estimator(A, y_batch, hparams)
                 x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)

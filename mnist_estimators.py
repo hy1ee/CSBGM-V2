@@ -10,8 +10,6 @@ import utils
 # Specific Models
 from sklearn.linear_model import Lasso
 
-
-
 def lasso_estimator(A_val, y_batch_val, hparams):
     x_hat_batch = []
     for i in range(hparams.batch_size):
@@ -189,7 +187,7 @@ def nice_estimator(A, y_batch, hparams):
     # Load pre-trained model
     model.load_state_dict(torch.load(hparams.nice_pretrained_model_dir))
 
-    optimizer = optim.Adam([z], lr = 0.01)
+    optimizer = optim.Adam([z], lr = 0.1)
     
     best_keeper = utils.BestKeeper(hparams)
 
@@ -239,15 +237,13 @@ def nice_bayesian_estimator(A, y_batch, hparams):
     # Load pre-trained model
     model.load_state_dict(torch.load(hparams.nice_pretrained_model_dir))
 
-    print(model)
-
-    first_linear_layer_params = list(model.coupling_layers[3].m[10].parameters())
-    weight, bias = first_linear_layer_params
+    last_linear_layer_params = list(model.coupling_layers[3].m[10].parameters())
+    weight, bias = last_linear_layer_params
 
     scale_theta = list(model.scaling_layer.parameters())[0]
 
-    optimizer = optim.Adam([z], lr = 0.01)
-    optimizer_theta = optim.Adam([scale_theta], lr = 0.01)
+    optimizer = optim.Adam([z], lr = 0.1)
+    optimizer_theta = optim.Adam([scale_theta], lr = 0.1)
 
     weight_cons, bias_cons = weight, bias
     scale_theta_cons = scale_theta
@@ -275,7 +271,7 @@ def nice_bayesian_estimator(A, y_batch, hparams):
             
             # theta_loss_batch = torch.mean((weight - weight_cons)**2) + torch.mean((bias - bias_cons)**2)
             # theta_loss_batch = torch.mean((scale_theta- scale_theta_cons)**2)
-            theta_loss_batch = torch.mean((weight - weight_cons)**2) + 0.1 * (torch.mean((bias - bias_cons)**2) + torch.mean((scale_theta- scale_theta_cons)**2) )
+            theta_loss_batch = torch.mean((weight - weight_cons)**2) + (torch.mean((bias - bias_cons)**2) + torch.mean((scale_theta- scale_theta_cons)**2) )
             total_loss = torch.mean(total_loss_batch) + hparams.theta_loss_weight * theta_loss_batch
 
             total_loss.backward()
@@ -300,7 +296,7 @@ def nice_bayesian_estimator(A, y_batch, hparams):
             
             # theta_loss_batch = torch.mean((weight - weight_cons)**2) + torch.mean((bias - bias_cons)**2)
             # theta_loss_batch = torch.mean((scale_theta- scale_theta_cons)**2)  
-            theta_loss_batch = torch.mean((weight - weight_cons)**2) + 0.1 * (torch.mean((bias - bias_cons)**2) + torch.mean((scale_theta- scale_theta_cons)**2) )
+            theta_loss_batch = torch.mean((weight - weight_cons)**2) + (torch.mean((bias - bias_cons)**2) + torch.mean((scale_theta- scale_theta_cons)**2) )
 
             total_loss = torch.mean(total_loss_batch) + hparams.theta_loss_weight * theta_loss_batch
 
@@ -321,7 +317,7 @@ def nice_bayesian_estimator(A, y_batch, hparams):
 
         # theta_loss_batch = torch.mean((weight - weight_cons)**2) + torch.mean((bias - bias_cons)**2)
         # theta_loss_batch = torch.mean((scale_theta- scale_theta_cons)**2)
-        theta_loss_batch = torch.mean((weight - weight_cons)**2) + 0.1 * (torch.mean((bias - bias_cons)**2) + torch.mean((scale_theta- scale_theta_cons)**2) )
+        theta_loss_batch = torch.mean((weight - weight_cons)**2) + (torch.mean((bias - bias_cons)**2) + torch.mean((scale_theta- scale_theta_cons)**2) )
         # define total loss
         total_loss_batch_val = hparams.mloss1_weight * m_loss1_batch \
                             + hparams.mloss2_weight * m_loss2_batch \
