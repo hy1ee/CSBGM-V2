@@ -47,7 +47,7 @@ def main(hparams):
     x = range(len(RealNVP_Loss))
     plt.plot(x, RealNVP_Loss)
 
-    plt.title('NICE Loss')
+    plt.title('RealNVP Loss')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
 
