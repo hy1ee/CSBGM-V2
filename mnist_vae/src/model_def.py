@@ -62,7 +62,7 @@ class VAE(nn.Module):
         """
         hidden1 = F.softplus(self.fc5(z))
         hidden2 = F.softplus(self.fc6(hidden1))
-        x_hat = torch.sigmoid(self.fc7(hidden2))  # 图片数值取值为[0,1]，不宜用ReLU
+        x_hat = torch.sigmoid(self.fc7(hidden2)) 
         return x_hat
 
 
