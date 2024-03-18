@@ -88,6 +88,17 @@ def show_images(images_list, labels, hparams):
         plt.show()
         
 
+def mse_between_elements(lst):
+    first_element = lst[0]
+    mse_values = []
+    for _, element in enumerate(lst[1:], start=1):
+        if first_element.shape != element.shape:
+            element = np.squeeze(element, axis=1)
+        mse = np.mean((element - first_element) ** 2)
+        mse_values.append(mse)
+    return mse_values
+
+
 
 def ssim_loss(y_batch, y_hat_batch, window_size=11, size_average=True):
         # Padding for the window

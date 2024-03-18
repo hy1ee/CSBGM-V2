@@ -123,41 +123,15 @@ def main(hparams):
             estimators_list.append(x_batch_hat)
 
         assert len(estimators_list) == len(model_name)
-        print(estimators_list[0].shape)
-        print(estimators_list[1].shape)
-        # print(estimators_list[2].shape)
+
+        mse_values = utils.mse_between_elements(estimators_list)
+        for idx, mse in enumerate(mse_values, start=2):
+            print(f"{model_name[idx-1]} MSE:", mse)
+
         utils.show_images(estimators_list,model_name, hparams)
 
 
-    # assert 1 == 2
-    # step = 0
-    # for batch_idx, (x_batch, _) in enumerate(mnist_train):
-    #     step += 1
-    #     x_batch = x_batch.view(hparams.batch_size, hparams.n_input)
-    #     # print(x_batch_val.shape)
 
-
-    #     A = np.random.randn(hparams.n_input, hparams.num_measurements)
-    #     A = torch.tensor(A, dtype=torch.float32)
-    #     noise_batch = hparams.noise_std * np.random.randn(hparams.batch_size, hparams.num_measurements)
-    #     y_batch = np.matmul(x_batch, A) + noise_batch 
-
-    #     x_batch_hat = mnist_estimators.nice_bayesian_estimator(A, y_batch, hparams)
-
-    #     l2_loss = utils.get_l2_loss(x_batch_hat, x_batch)
-    #     measurement_loss = utils.get_measurement_loss(x_batch_hat, A, y_batch)
-    #     l2_losses.append(l2_loss)
-    #     measurement_losses.append(measurement_loss)
-
-    #     print(l2_loss)
-    #     print(measurement_loss)
-
-    #     if step % 100 == 0:
-    #         print(l2_loss)
-    #         print(measurement_loss)
-    #     if step >= 500:
-    #         break
-    # print(np.mean(l2_losses))
 
 if __name__ == '__main__':
     PARSER = ArgumentParser()
