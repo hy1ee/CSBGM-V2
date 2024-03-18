@@ -710,7 +710,7 @@ def realnvp_estimator(A, y_batch, hparams):
 
             # Define Loss
             m_loss1_batch = torch.mean(torch.abs(y_batch - y_hat_batch), 1)
-            m_loss2_batch = F.mse_loss(y_batch, y_hat_batch)# torch.mean((y_batch - y_hat_batch)**2, 1) + 
+            m_loss2_batch = F.mse_loss(y_batch, y_hat_batch)
             zp_loss_batch = torch.sum(z**2, 1)
 
             # define total loss
@@ -772,7 +772,6 @@ def realnvp_bayesian_estimator(A, y_batch, hparams):
     optimizer = optim.Adam([z], lr = 0.01)
     
     optimizer_theta = optim.Adam([w, b], lr = 0.01)
-    # par_origin = [param.detach().clone() for param in model.parameters()]
     best_keeper = utils.BestKeeper(hparams)
 
     for i in range(hparams.num_random_restarts):
@@ -786,7 +785,7 @@ def realnvp_bayesian_estimator(A, y_batch, hparams):
 
             # Define Loss
             m_loss1_batch = torch.mean(torch.abs(y_batch - y_hat_batch), 1)
-            m_loss2_batch = F.mse_loss(y_batch, y_hat_batch)# torch.mean((y_batch - y_hat_batch)**2, 1) + 
+            m_loss2_batch = F.mse_loss(y_batch, y_hat_batch)
             zp_loss_batch = torch.sum(z**2, 1)
 
             # define total loss
@@ -796,8 +795,6 @@ def realnvp_bayesian_estimator(A, y_batch, hparams):
             theta_loss_batch = torch.mean((w - w_cons)**2) + torch.mean((b - b_cons)**2)                                
             
             total_loss = torch.mean(total_loss_batch) + hparams.theta_loss_weight * theta_loss_batch
-
-            # total_loss = torch.mean(total_loss_batch)
 
             total_loss.backward()
             optimizer.step()
@@ -824,7 +821,7 @@ def realnvp_bayesian_estimator(A, y_batch, hparams):
             theta_loss_batch = torch.mean((w - w_cons)**2) + torch.mean((b - b_cons)**2)
 
             total_loss = torch.mean(total_loss_batch) + hparams.theta_loss_weight * theta_loss_batch
-            # print(f"{hparams.mloss2_weight * m_loss2_batch} | {hparams.zprior_weight * zp_loss_batch} | {hparams.theta_loss_weight * theta_loss_batch}")
+
             print(f"[Bayesian] num_restart:{i} | iter:{j} | total_loss:{total_loss}")
             total_loss.backward()
             optimizer_theta.step()
@@ -889,8 +886,6 @@ def ae_realnvp_estimator(A, y_batch, hparams):
         for j in range(hparams.max_update_iter):
             optimizer.zero_grad()
 
-            # emb, d = nf_model.sample(sample_n,y = None, return_logdet=True)
-
             emb,d = model.backward(z)
             z_temp = autoencoder.decoder(emb)
             d_sorted = d.sort(0)[1].flip(0)
@@ -940,7 +935,7 @@ def ae_realnvp_estimator(A, y_batch, hparams):
 
 
 def ae_realnvp_bayesian_estimator(A, y_batch, hparams):
-    # hparams.zprior_weight = 1
+
     loss_plt, loss_bayesian_plt = [], []
     device = 'cpu'
     autoencoder = AutoEncoder(hparams)
@@ -974,9 +969,6 @@ def ae_realnvp_bayesian_estimator(A, y_batch, hparams):
         if name == 'convt2.bias':
             b3 = param
 
-        # print(f"{name} | {param}") # param.shape
-    # assert 1 == 2
-    # print(autoencoder.named_parameters())# .state_dict())
 
     model.load_state_dict(torch.load((hparams.ae_realnvp_pretrained_model_dir)))
     model.eval()
@@ -988,7 +980,6 @@ def ae_realnvp_bayesian_estimator(A, y_batch, hparams):
     
     optimizer_theta = optim.Adam([w3, b3], lr = 0.01)
     w1_cons, b1_cons,w2_cons, b2_cons, w3_cons, b3_cons = w1, b1, w2, b2, w3, b3
-    # weight_cons, bias_cons = weight, bias
 
     best_keeper = utils.BestKeeper(hparams)
 
@@ -1009,7 +1000,7 @@ def ae_realnvp_bayesian_estimator(A, y_batch, hparams):
 
             # Define Loss
             m_loss1_batch = torch.mean(torch.abs(y_batch - y_hat_batch), 1)
-            m_loss2_batch = F.mse_loss(y_batch, y_hat_batch)# torch.mean((y_batch - y_hat_batch)**2, 1) + 
+            m_loss2_batch = F.mse_loss(y_batch, y_hat_batch)
             zp_loss_batch = torch.sum(z**2, 1)
 
             # define total loss
@@ -1051,29 +1042,20 @@ def ae_realnvp_bayesian_estimator(A, y_batch, hparams):
                                 + hparams.mloss2_weight * m_loss2_batch \
                                 + hparams.zprior_weight * zp_loss_batch
             
-            # theta_loss_batch = torch.mean((weight - weight_cons)**2) + torch.mean((bias - bias_cons)**2)
-            # theta_loss_batch = torch.mean((scale_theta- scale_theta_cons)**2)  
-            # theta_loss_batch = torch.mean((weight - weight_cons)**2) + (torch.mean((bias - bias_cons)**2) + torch.mean((scale_theta- scale_theta_cons)**2) )
-
+            
             theta_loss_batch = torch.mean((w1 - w1_cons)**2) + (torch.mean((b1 - b1_cons)**2)) \
                                 + torch.mean((w2 - w2_cons)**2) + (torch.mean((b2 - b2_cons)**2)) \
                                 + torch.mean((w3 - w3_cons)**2) + (torch.mean((b3 - b3_cons)**2))
             total_loss = torch.mean(total_loss_batch) + hparams.theta_loss_weight * theta_loss_batch
-            # print(f"{hparams.mloss2_weight * m_loss2_batch} | {hparams.zprior_weight * zp_loss_batch} | {hparams.theta_loss_weight * theta_loss_batch}")
+            
             total_loss.backward()
             optimizer_theta.step()
             print(f"[Bayesian] num_restart:{i} | iter:{j} | total_loss:{total_loss} | theta_loss:{hparams.theta_loss_weight * theta_loss_batch}")
             loss_bayesian_plt.append(total_loss.item())
-        # autoencoder.linear2.weight
-        # w1, b1 = list(autoencoder.linear2.parameters())
-        # w2, b2 = list(autoencoder.convt1.parameters())
-        # w3, b3 = list(autoencoder.convt2.parameters())
+
         autoencoder.linear2.weight.data,autoencoder.linear2.bias.data  = torch.nn.Parameter(w1), torch.nn.Parameter(b1)
         autoencoder.convt1.weight.data,autoencoder.convt1.bias.data  = torch.nn.Parameter(w2), torch.nn.Parameter(b2)
         autoencoder.convt2.weight.data,autoencoder.convt2.bias.data  = torch.nn.Parameter(w3), torch.nn.Parameter(b3)
-        # model.fc7.weight = torch.nn.Parameter(w7)
-        # model.fc7.bias = torch.nn.Parameter(b7)
-
 
         emb,d = model.backward(torch.tensor(z).to(device).float())
         z_temp = autoencoder.decoder(emb)
@@ -1096,15 +1078,6 @@ def ae_realnvp_bayesian_estimator(A, y_batch, hparams):
                             + hparams.zprior_weight * zp_loss_batch \
                             + hparams.theta_loss_weight * theta_loss_batch
         
-        
-        # define total loss
-        # total_loss_batch_val = hparams.mloss1_weight * m_loss1_batch \
-        #                     + hparams.mloss2_weight * m_loss2_batch \
-        #                     + hparams.zprior_weight * zp_loss_batch \
-        #                     + hparams.theta_loss_weight * theta_loss_batch
-         #total_loss_batch_val = torch.mean(total_loss_batch) + hparams.theta_loss_weight * theta_loss_batch
-        # total_loss_batch_val = torch.mean(total_loss_batch_val) + hparams.theta_loss_weight * theta_loss_batch
-        
         best_keeper.report(x_hat_batch_val, total_loss_batch_val)
 
     logging.info('vae_nvp_bayesian_Origin_Loss: %s', loss_plt)
@@ -1118,9 +1091,6 @@ def vae_nvp_estimator(A, y_batch, hparams):
     z = torch.randn(hparams.batch_size, hparams.n_z, requires_grad=True)
     model = VAE_NVP(hparams)
 
-    # Load pre-trained model
-    # checkpoint = torch.load(hparams.real_vae_pretrained_model_dir)
-    # model.load_state_dict(checkpoint['state_dict'])
     model.load_state_dict(torch.load(hparams.vae_nvp_pretrained_model_dir))
     model.eval()
     optimizer = optim.Adam([z], lr = 0.01)
@@ -1132,10 +1102,6 @@ def vae_nvp_estimator(A, y_batch, hparams):
         for j in range(hparams.max_update_iter):
             optimizer.zero_grad()
 
-            # z_sampled_flow_in, _ = model.flow_forward(z)
-            # z_transfrom = model.flow_backward(z)
-            # print(z_sampled_flow_in.shape)
-            # assert 1 == 2
             # decoder
             random_res = model.decoder(z)
 

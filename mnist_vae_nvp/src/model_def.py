@@ -44,23 +44,17 @@ class VAE_NVP(nn.Module):
 
     def forward(self, x):
         """
-        向前传播部分, 在model_name(inputs)时自动调用
         :param x: the input of our training model [b, batch_size, 1, 28, 28]
         :return: the result of our training model
         """
-        batch_size = x.shape[0]  # 每一批含有的样本的个数
-        # flatten  [b, batch_size, 1, 28, 28] => [b, batch_size, 784]
-        # tensor.view()方法可以调整tensor的形状，但必须保证调整前后元素总数一致。view不会修改自身的数据，
-        # 返回的新tensor与原tensor共享内存，即更改一个，另一个也随之改变。
-        x = x.view(batch_size, self.n_input)  # 一行代表一个样本
+        batch_size = x.shape[0] 
+        x = x.view(batch_size, self.n_input) 
 
         # encoder
         z_mean, z_log_sigma_sq = self.encoder(x)
-
         z_sampled = z_mean + torch.randn_like(torch.exp(z_log_sigma_sq * 0.5))
-
         z_sampled_flow_in, likelihood = self.flow_forward(z_sampled)
-        # z_transfrom = self.flow_backward(z_sampled_flow_in)
+
 
         # decoder
         x_hat = self.decoder(z_sampled_flow_in)
@@ -89,13 +83,12 @@ class VAE_NVP(nn.Module):
         """
         hidden1 = F.softplus(self.fc5(z))
         hidden2 = F.softplus(self.fc6(hidden1))
-        x_hat = torch.sigmoid(self.fc7(hidden2))  # 图片数值取值为[0,1]，不宜用ReLU
+        x_hat = torch.sigmoid(self.fc7(hidden2)) 
         return x_hat
 
 
     def flow_forward(self, z_sample):
-        # z_flow_in, likelihood = self.flow(z_sample, y = None) # z_sample: bs, n_z
-        
+
         u, log_det = self.flow.forward(z_sample, y=None)
         prior_logprob = self.flow.logprob(u)
         log_prob = -torch.mean(prior_logprob.sum(1) + log_det)

@@ -34,17 +34,14 @@ def get_loss(x_hat, x, z_mean, z_log_sigma_sq):
 
 def save_checkpoint(state, is_best, outdir):
     """
-    每训练一定的epochs后， 判断损失函数是否是目前最优的，并保存模型的参数
-    :param state: 需要保存的参数，数据类型为dict
-    :param is_best: 说明是否为目前最优的
-    :param outdir: 保存文件夹
-    :return:
+    After training a certain number of epochs, 
+    determine whether the loss function is currently optimal and save the model parameters
     """
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    checkpoint_file = os.path.join(outdir, 'checkpoint.pth')  # join函数创建子文件夹，也就是把第二个参数对应的文件保存在'outdir'里
+    checkpoint_file = os.path.join(outdir, 'checkpoint.pth') 
     best_file = os.path.join(outdir, 'model_best.pth')
-    torch.save(state, checkpoint_file)  # 把state保存在checkpoint_file文件夹中
+    torch.save(state, checkpoint_file) 
     if is_best:
         shutil.copyfile(checkpoint_file, best_file)
