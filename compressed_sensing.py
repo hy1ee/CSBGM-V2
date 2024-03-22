@@ -130,6 +130,8 @@ def main(hparams):
 
         utils.show_images(estimators_list,model_name, hparams)
 
+    
+
 
 
 
@@ -150,7 +152,7 @@ if __name__ == '__main__':
     PARSER.add_argument('--batch_size', type=int, default=1, help='How many examples are processed together')
     PARSER.add_argument('--n_input', type=int, default=784, help='The dim of input images')
 
-    PARSER.add_argument('--num-measurements', type=int, default=50, help='num measurements(A)')
+    PARSER.add_argument('--num_measurements', type=int, default=50, help='num measurements(A)')
     PARSER.add_argument('--noise_std', type=float, default=0.1, help='std of noise(n)')
 
     # Lasso model Parameters
