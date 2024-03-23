@@ -301,7 +301,7 @@ if __name__ == '__main__':
     PARSER.add_argument('--noise_std', type=float, default=0.1, help='std of noise(n)')
 
     # get z
-    PARSER.add_argument('--get_z_method', type=str, default='Gaussian', help='Or Fixed, Modify in the utils file')
+    PARSER.add_argument('--get_z_method', type=str, default='Gaussian', help='Relative Methods store in the utils.py')
 
     # Lasso model Parameters
     PARSER.add_argument('--lmbd', type=float, default='0.01', help='The lmbd of Lasso')

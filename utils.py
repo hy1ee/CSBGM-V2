@@ -131,7 +131,19 @@ def get_z(hparams, z_dim):
         z = np.random.normal(0,hparams.temperature,[hparams.batch_size, z_dim])
         z = torch.tensor(z).float()
         z.requires_grad_(True)
-    if hparams.get_z_method == 'Fixed':
+        
+    elif hparams.get_z_method == 'Exponential':
+        z = np.random.exponential(0.5, [hparams.batch_size, z_dim])
+        z = torch.tensor(z).float()
+        z.requires_grad_(True)
+
+    elif hparams.get_z_method == 'Fixed':
         z = torch.ones([hparams.batch_size, z_dim], dtype=torch.float32, requires_grad=True)
 
+    elif hparams.get_z_method == 'Uniform':
+        z = torch.rand([hparams.batch_size, z_dim], dtype=torch.float32, requires_grad=True)
+    else:
+        raise ValueError("Unknown method for sampling z.")
+
     return z
+
