@@ -124,3 +124,14 @@ def ssim_loss(y_batch, y_hat_batch, window_size=11, size_average=True):
             return torch.mean((1 - ssim_map) / 2)
         else:
             return torch.mean((1 - ssim_map) / 2, dim=1)
+        
+
+def get_z(hparams, z_dim):
+    if hparams.get_z_method == 'Gaussian':
+        z = np.random.normal(0,hparams.temperature,[hparams.batch_size, z_dim])
+        z = torch.tensor(z).float()
+        z.requires_grad_(True)
+    if hparams.get_z_method == 'Fixed':
+        z = torch.ones([hparams.batch_size, z_dim], dtype=torch.float32, requires_grad=True)
+
+    return z
