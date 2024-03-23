@@ -130,10 +130,123 @@ def main(hparams):
 
         utils.show_images(estimators_list,model_name, hparams)
 
-    
 
-    
+    lasso_l2_loss, lasso_measure_loss = 0,0
+    vae_l2_loss, vae_measure_loss = 0,0
 
+    vae_bayesian_last_layer_l2_loss, vae_bayesian_last_layer_measure_loss = 0,0
+    vae_bayesian_l2_loss, vae_bayesian_measure_loss = 0,0
+
+    nice_l2_loss, nice_measure_loss = 0,0
+    nice_bayesian_l2_loss, nice_bayesian_measure_loss = 0,0
+    nice_bayesian_last_layer_l2_loss, nice_bayesian_last_layer_measure_loss = 0,0
+
+    realnvp_l2_loss, realnvp_measure_loss = 0,0
+    realnvp_bayesian_l2_loss, realnvp_bayesian_measure_loss = 0,0
+
+    ae_realnvp_l2_loss, ae_realnvp_measure_loss = 0,0
+    ae_realnvp_bayesian_l2_loss, ae_realnvp_bayesian_measure_loss = 0,0
+
+    vae_nvp_l2_loss, vae_nvp_measure_loss = 0,0
+    vae_nvp_bayesian_l2_loss, vae_nvp_bayesian_measure_loss = 0,0
+
+
+    step = 0
+    for batch_idx, (x_batch, _) in enumerate(mnist_train):
+        step += 1
+        x_batch = x_batch.view(hparams.batch_size, hparams.n_input) 
+
+        A = np.random.randn(hparams.n_input, hparams.num_measurements)
+        A = torch.tensor(A, dtype=torch.float32)
+        noise_batch = hparams.noise_std * np.random.randn(hparams.batch_size, hparams.num_measurements)
+        y_batch = np.matmul(x_batch, A) + noise_batch
+
+        for name in model_name:
+            x_batch_hat = None
+            if name == 'origin':    
+                continue
+
+            if name == 'lasso':
+                x_batch_hat = mnist_estimators.lasso_estimator(A, y_batch, hparams)
+                lasso_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                lasso_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+            
+            if name == 'vae':
+                x_batch_hat = mnist_estimators.vae_estimator(A, y_batch, hparams)
+                vae_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                vae_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+
+            if name == 'vae_bayesian_last_layer':
+                x_batch_hat = mnist_estimators.vae_bayesian_last_layer_estimator(A, y_batch, hparams)
+                vae_bayesian_last_layer_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                vae_bayesian_last_layer_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+
+            if name == 'vae_bayesian':
+                x_batch_hat = mnist_estimators.vae_bayesian_estimator(A, y_batch, hparams)
+                vae_bayesian_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                vae_bayesian_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+
+            if name == 'nice':
+                x_batch_hat = mnist_estimators.nice_estimator(A, y_batch, hparams)
+                nice_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                nice_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+
+            if name == 'nice_bayesian':
+                x_batch_hat = mnist_estimators.nice_bayesian_estimator(A, y_batch, hparams)
+                nice_bayesian_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                nice_bayesian_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+
+            if name == 'nice_bayesian_last_layer':
+                x_batch_hat = mnist_estimators.nice_bayesian_last_layer_estimator(A, y_batch, hparams)
+                nice_bayesian_last_layer_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                nice_bayesian_last_layer_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+
+
+            if name == 'realnvp':
+                x_batch_hat = mnist_estimators.realnvp_estimator(A, y_batch, hparams)
+                realnvp_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                realnvp_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+
+            if name == 'realnvp_bayesian':
+                x_batch_hat = mnist_estimators.realnvp_bayesian_estimator(A, y_batch, hparams)
+                realnvp_bayesian_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                realnvp_bayesian_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+
+            if name == 'ae_realnvp':
+                x_batch_hat = mnist_estimators.ae_realnvp_estimator(A, y_batch, hparams)
+                ae_realnvp_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                ae_realnvp_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+
+            if name == 'ae_realnvp_bayesian':
+                x_batch_hat = mnist_estimators.ae_realnvp_bayesian_estimator(A, y_batch, hparams)
+                ae_realnvp_bayesian_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                ae_realnvp_bayesian_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+
+            if name == 'vae_nvp':
+                x_batch_hat = mnist_estimators.vae_nvp_estimator(A, y_batch, hparams)
+                vae_nvp_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                vae_nvp_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+
+            if name == 'vae_nvp_bayesian':
+                x_batch_hat = mnist_estimators.vae_nvp_bayesian_estimator(A, y_batch, hparams)
+                vae_nvp_bayesian_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                vae_nvp_bayesian_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+
+        if step >= hparams.steps:
+            break
 
 
 
@@ -156,6 +269,9 @@ if __name__ == '__main__':
 
     PARSER.add_argument('--num_measurements', type=int, default=50, help='num measurements(A)')
     PARSER.add_argument('--noise_std', type=float, default=0.1, help='std of noise(n)')
+
+    # get z
+    PARSER.add_argument('--get_z_method', type=str, default='Gaussian', help='Or Fixed, Modify in the utils file')
 
     # Lasso model Parameters
     PARSER.add_argument('--lmbd', type=float, default='0.01', help='The lmbd of Lasso')
@@ -193,6 +309,10 @@ if __name__ == '__main__':
 
     # Show images
     PARSER.add_argument('--if_show_images', type=bool, default=True, help='if show images')
+
+    # Steps
+    PARSER.add_argument('--steps', type=int, default=30, help='Steps to evaluate the average loss')
+
 
     HPARAMS = PARSER.parse_args()
 

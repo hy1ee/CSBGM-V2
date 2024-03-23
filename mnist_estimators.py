@@ -47,7 +47,8 @@ def lasso_estimator(A_val, y_batch_val, hparams):
 
 def vae_estimator(A, y_batch, hparams):
     loss_plt, loss_bayesian_plt = [], []
-    z = torch.randn(hparams.batch_size, hparams.n_z, requires_grad=True)
+    # z = torch.randn(hparams.batch_size, hparams.n_z, requires_grad=True)
+    z = utils.get_z(hparams, hparams.n_z)
     model = VAE(hparams)
 
     # Load pre-trained model
@@ -101,7 +102,8 @@ def vae_estimator(A, y_batch, hparams):
 
 def vae_bayesian_last_layer_estimator(A, y_batch, hparams):
     loss_plt, loss_bayesian_plt = [], []
-    z = torch.randn(hparams.batch_size, hparams.n_z, requires_grad=True)
+    # z = torch.randn(hparams.batch_size, hparams.n_z, requires_grad=True)
+    z = utils.get_z(hparams, hparams.n_z)
     model = VAE(hparams)
 
     # Load pre-trained model
@@ -206,7 +208,8 @@ def vae_bayesian_last_layer_estimator(A, y_batch, hparams):
 
 def vae_bayesian_estimator(A, y_batch, hparams):
     loss_plt, loss_bayesian_plt = [], []
-    z = torch.randn(hparams.batch_size, hparams.n_z, requires_grad=True)
+    # z = torch.randn(hparams.batch_size, hparams.n_z, requires_grad=True)
+    z = utils.get_z(hparams, hparams.n_z)
     model = VAE(hparams)
 
     # Load pre-trained model
@@ -304,9 +307,9 @@ def vae_bayesian_estimator(A, y_batch, hparams):
 
 def nice_estimator(A, y_batch, hparams):
     loss_plt, loss_bayesian_plt = [], []
-    z = np.random.normal(0,hparams.temperature,[hparams.batch_size, hparams.n_input])
-    z = torch.tensor(z,requires_grad=True,dtype=torch.float)
-
+    # z = np.random.normal(0,hparams.temperature,[hparams.batch_size, hparams.n_input])
+    # z = torch.tensor(z,requires_grad=True,dtype=torch.float)
+    z = utils.get_z(hparams, hparams.n_input)
     model = NICE(hparams, data_dim=hparams.n_input)
 
     # Load pre-trained model
@@ -359,8 +362,9 @@ def nice_estimator(A, y_batch, hparams):
 
 def nice_bayesian_estimator(A, y_batch, hparams):
     loss_plt, loss_bayesian_plt = [], []
-    z = np.random.normal(0,hparams.temperature,[hparams.batch_size, hparams.n_input])
-    z = torch.tensor(z,requires_grad=True,dtype=torch.float)
+    # z = np.random.normal(0,hparams.temperature,[hparams.batch_size, hparams.n_input])
+    # z = torch.tensor(z,requires_grad=True,dtype=torch.float)
+    z = utils.get_z(hparams, hparams.n_input)
 
     model = NICE(hparams, data_dim=hparams.n_input)
     hparams.theta_loss_weight = 5.0
@@ -577,8 +581,10 @@ def nice_bayesian_estimator(A, y_batch, hparams):
 
 def nice_bayesian_last_layer_estimator(A, y_batch, hparams):
     loss_plt, loss_bayesian_plt = [], []
-    z = np.random.normal(0,hparams.temperature,[hparams.batch_size, hparams.n_input])
-    z = torch.tensor(z,requires_grad=True,dtype=torch.float)
+    # z = np.random.normal(0,hparams.temperature,[hparams.batch_size, hparams.n_input])
+    # z = torch.tensor(z,requires_grad=True,dtype=torch.float)
+
+    z = utils.get_z(hparams, hparams.n_input)
     model = NICE(hparams, data_dim=hparams.n_input)
 
     # Load pre-trained model
@@ -692,9 +698,11 @@ def realnvp_estimator(A, y_batch, hparams):
     model.eval()
 
 
-    z = np.random.normal(0,hparams.temperature,[hparams.batch_size, hparams.n_input])
-    z = torch.tensor(z).to(device).float()
-    z.requires_grad_(True)
+    # z = np.random.normal(0,hparams.temperature,[hparams.batch_size, hparams.n_input])
+    # z = torch.tensor(z).to(device).float()
+    # z.requires_grad_(True)
+
+    z = utils.get_z(hparams, hparams.n_input)
     optimizer = optim.Adam([z], lr = 0.01)
     
     best_keeper = utils.BestKeeper(hparams)
@@ -766,9 +774,10 @@ def realnvp_bayesian_estimator(A, y_batch, hparams):
 
     w_cons, b_cons = w, b
 
-    z = np.random.normal(0,hparams.temperature,[hparams.batch_size, hparams.n_input])
-    z = torch.tensor(z).to(device).float()
-    z.requires_grad_(True)
+    # z = np.random.normal(0,hparams.temperature,[hparams.batch_size, hparams.n_input])
+    # z = torch.tensor(z).to(device).float()
+    # z.requires_grad_(True)
+    z = utils.get_z(hparams, hparams.n_input)
     optimizer = optim.Adam([z], lr = 0.01)
     
     optimizer_theta = optim.Adam([w, b], lr = 0.01)
@@ -874,9 +883,10 @@ def ae_realnvp_estimator(A, y_batch, hparams):
     model.load_state_dict(torch.load((hparams.ae_realnvp_pretrained_model_dir)))
     model.eval()
 
-    z = np.random.normal(0,hparams.temperature,[hparams.batch_size, hparams.embedding_dim])
-    z = torch.tensor(z,requires_grad=True,dtype=torch.float)
-    z.requires_grad_(True)
+    # z = np.random.normal(0,hparams.temperature,[hparams.batch_size, hparams.embedding_dim])
+    # z = torch.tensor(z,requires_grad=True,dtype=torch.float)
+    # z.requires_grad_(True)
+    z = utils.get_z(hparams, hparams.embedding_dim)
     optimizer = optim.Adam([z], lr = 0.01)
     
     best_keeper = utils.BestKeeper(hparams)
@@ -1088,7 +1098,8 @@ def ae_realnvp_bayesian_estimator(A, y_batch, hparams):
 
 def vae_nvp_estimator(A, y_batch, hparams):
     loss_plt, loss_bayesian_plt = [], []
-    z = torch.randn(hparams.batch_size, hparams.n_z, requires_grad=True)
+    # z = torch.randn(hparams.batch_size, hparams.n_z, requires_grad=True)
+    z = utils.get_z(hparams, hparams.n_z)
     model = VAE_NVP(hparams)
 
     model.load_state_dict(torch.load(hparams.vae_nvp_pretrained_model_dir))
@@ -1150,7 +1161,8 @@ def vae_nvp_estimator(A, y_batch, hparams):
 def vae_nvp_bayesian_estimator(A, y_batch, hparams):
 
     loss_plt, loss_bayesian_plt = [], []
-    z = torch.randn(hparams.batch_size, hparams.n_z, requires_grad=True)
+    # z = torch.randn(hparams.batch_size, hparams.n_z, requires_grad=True)
+    z = utils.get_z(hparams, hparams.n_z)
     model = VAE_NVP(hparams)
 
     model.load_state_dict(torch.load(hparams.vae_nvp_pretrained_model_dir))
