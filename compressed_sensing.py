@@ -148,6 +148,7 @@ def main(hparams):
     ae_realnvp_bayesian_l2_loss, ae_realnvp_bayesian_measure_loss = 0,0
 
     vae_nvp_l2_loss, vae_nvp_measure_loss = 0,0
+    vae_nvp_bayesian_last_layer_l2_loss, vae_nvp_bayesian_last_layer_measure_loss = 0,0
     vae_nvp_bayesian_l2_loss, vae_nvp_bayesian_measure_loss = 0,0
 
 
@@ -239,8 +240,16 @@ def main(hparams):
                 vae_nvp_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
                 print(f"{name} model Completed")
 
+            if name == 'vae_nvp_bayesian_last_layer':
+                x_batch_hat = mnist_estimators.vae_nvp_bayesian_last_layer_estimator(A, y_batch, hparams)
+                # x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)
+                vae_nvp_bayesian_last_layer_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                vae_nvp_bayesian_last_layer_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
+
             if name == 'vae_nvp_bayesian':
                 x_batch_hat = mnist_estimators.vae_nvp_bayesian_estimator(A, y_batch, hparams)
+                # x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)
                 vae_nvp_bayesian_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
                 vae_nvp_bayesian_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
                 print(f"{name} model Completed")
@@ -248,6 +257,27 @@ def main(hparams):
         if step >= hparams.steps:
             break
 
+    
+    print(f"Lasso | L2_loss:{np.mean(lasso_l2_loss)} | Measurement_loss:{np.mean(lasso_measure_loss)}")
+    
+    print(f"vae | L2_loss:{np.mean(vae_l2_loss)} | Measurement_loss:{np.mean(vae_measure_loss)}")
+    print(f"vae_bayesian_last_layer | L2_loss:{np.mean(vae_bayesian_last_layer_l2_loss)} | Measurement_loss:{np.mean(vae_bayesian_last_layer_measure_loss)}")
+    print(f"vae_bayesian | L2_loss:{np.mean(vae_bayesian_l2_loss)} | Measurement_loss:{np.mean(vae_bayesian_measure_loss)}")
+    
+    print(f"nice | L2_loss:{np.mean(nice_l2_loss)} | Measurement_loss:{np.mean(nice_measure_loss)}")
+    print(f"nice_bayesian | L2_loss:{np.mean(nice_bayesian_l2_loss)} | Measurement_loss:{np.mean(nice_bayesian_measure_loss)}")
+    print(f"nice_bayesian_last_layer | L2_loss:{np.mean(nice_bayesian_last_layer_l2_loss)} | Measurement_loss:{np.mean(nice_bayesian_last_layer_measure_loss)}")
+    
+    print(f"realnvp | L2_loss:{np.mean(realnvp_l2_loss)} | Measurement_loss:{np.mean(realnvp_measure_loss)}")
+    print(f"realnvp_bayesian | L2_loss:{np.mean(realnvp_bayesian_l2_loss)} | Measurement_loss:{np.mean(realnvp_bayesian_measure_loss)}")
+    
+    print(f"ae_realnvp | L2_loss:{np.mean(ae_realnvp_l2_loss)} | Measurement_loss:{np.mean(ae_realnvp_measure_loss)}")
+    print(f"ae_realnvp_bayesian | L2_loss:{np.mean(ae_realnvp_bayesian_l2_loss)} | Measurement_loss:{np.mean(ae_realnvp_bayesian_measure_loss)}")
+    
+    print(f"vae_nvp | L2_loss:{np.mean(vae_nvp_l2_loss)} | Measurement_loss:{np.mean(vae_nvp_measure_loss)}")
+    print(f"vae_nvp_bayesian_last_layer | L2_loss:{np.mean(vae_nvp_bayesian_last_layer_l2_loss)} | Measurement_loss:{np.mean(vae_nvp_bayesian_last_layer_measure_loss)}")
+    print(f"vae_nvp_bayesian | L2_loss:{np.mean(vae_nvp_bayesian_l2_loss)} | Measurement_loss:{np.mean(vae_nvp_bayesian_measure_loss)}")
+    
 
 
 if __name__ == '__main__':

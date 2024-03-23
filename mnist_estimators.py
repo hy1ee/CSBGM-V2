@@ -1158,10 +1158,9 @@ def vae_nvp_estimator(A, y_batch, hparams):
     return best_keeper.get_best()
 
 
-def vae_nvp_bayesian_estimator(A, y_batch, hparams):
+def vae_nvp_bayesian_last_layer_estimator(A, y_batch, hparams):
 
     loss_plt, loss_bayesian_plt = [], []
-    # z = torch.randn(hparams.batch_size, hparams.n_z, requires_grad=True)
     z = utils.get_z(hparams, hparams.n_z)
     model = VAE_NVP(hparams)
 
@@ -1246,7 +1245,118 @@ def vae_nvp_bayesian_estimator(A, y_batch, hparams):
                                 + hparams.theta_loss_weight * theta_loss_batch
         
         best_keeper.report(x_hat_batch_val, total_loss_batch_val)
-    logging.info('vae_nvp_bayesian_Origin_Loss: %s', loss_plt)
-    logging.info('vae_nvp_bayesian_Bayesian_Loss: %s', loss_bayesian_plt)
+    logging.info('vae_nvp_bayesian_last_layer_Origin_Loss: %s', loss_plt)
+    logging.info('vae_nvp_bayesian_last_layer_Bayesian_Loss: %s', loss_bayesian_plt)
     return best_keeper.get_best()
 
+
+
+def vae_nvp_bayesian_estimator(A, y_batch, hparams):
+    loss_plt, loss_bayesian_plt = [], []
+    # z = torch.randn(hparams.batch_size, hparams.n_z, requires_grad=True)
+    z = utils.get_z(hparams, hparams.n_z)
+    model = VAE_NVP(hparams)
+
+    # Load pre-trained model
+    model.load_state_dict(torch.load(hparams.vae_nvp_pretrained_model_dir))
+
+    for name, param in model.named_parameters():
+        if name == 'fc5.weight':
+            w5 = param
+        if name == 'fc5.bias':
+            b5 = param
+
+        if name == 'fc6.weight':
+            w6 = param
+        if name == 'fc6.bias':
+            b6 = param
+
+        if name == 'fc7.weight':
+            w7 = param
+        if name == 'fc7.bias':
+            b7 = param
+
+    w5_cons, b5_cons = w5, b5
+    w6_cons, b6_cons = w6, b6
+    w7_cons, b7_cons = w7, b7
+
+    optimizer = optim.Adam([z], lr = 0.01)
+    optimizer_theta = optim.Adam([w5, b5,w6, b6,w7,b7], lr = 0.01)
+
+    best_keeper = utils.BestKeeper(hparams)
+
+    for i in range(hparams.num_random_restarts):
+
+        for j in range(hparams.max_update_iter):
+            optimizer.zero_grad()
+            x_hat_batch = model.decoder(z)
+
+            y_hat_batch = torch.matmul(x_hat_batch.double(), A.double())
+
+            # Define Loss
+            m_loss1_batch = torch.mean(torch.abs(y_batch - y_hat_batch), 1)
+            m_loss2_batch = torch.mean((y_batch - y_hat_batch)**2, 1)
+            zp_loss_batch = torch.sum(z**2, 1)
+
+            # define total loss
+            total_loss_batch = hparams.mloss1_weight * m_loss1_batch \
+                                + hparams.mloss2_weight * m_loss2_batch \
+                                + hparams.zprior_weight * zp_loss_batch
+             
+            theta_loss_batch = 0                             
+            total_loss = torch.mean(total_loss_batch) + hparams.theta_loss_weight * theta_loss_batch
+
+            total_loss.backward()
+            optimizer.step()
+            print(f"[Origin] num_restart:{i} | iter:{j} | total_loss:{total_loss}")
+            loss_plt.append(total_loss.item())
+
+        for j in range(hparams.max_update_iter):
+            optimizer_theta.zero_grad()
+            x_hat_batch = model.decoder(z)
+
+            y_hat_batch = torch.matmul(x_hat_batch.double(), A.double())
+
+            # Define Loss
+            m_loss1_batch = torch.mean(torch.abs(y_batch - y_hat_batch), 1)
+            m_loss2_batch = torch.mean((y_batch - y_hat_batch)**2, 1)
+            zp_loss_batch = torch.sum(z**2, 1)
+
+            # define total loss
+            total_loss_batch = hparams.mloss1_weight * m_loss1_batch \
+                                + hparams.mloss2_weight * m_loss2_batch \
+                                + hparams.zprior_weight * zp_loss_batch
+
+            theta_loss_batch = torch.mean((w5 - w5_cons)**2) + torch.mean((b5 - b5_cons)**2)  \
+                                + torch.mean((w6 - w6_cons)**2) + torch.mean((b6 - b6_cons)**2)  \
+                                + torch.mean((w7 - w7_cons)**2) + torch.mean((b7 - b7_cons)**2) 
+                                
+            total_loss = torch.mean(total_loss_batch) + hparams.theta_loss_weight * theta_loss_batch
+
+            total_loss.backward()
+            optimizer_theta.step()    
+            print(f"[Bayesian] num_restart:{i} | iter:{j} | total_loss:{total_loss}")
+            loss_bayesian_plt.append(total_loss.item())
+        
+        x_hat_batch_val = model.decoder(z)
+
+        y_hat_batch = torch.matmul(x_hat_batch_val.double(), A.double())
+        m_loss1_batch = torch.mean(torch.abs(y_batch - y_hat_batch), 1)
+        m_loss2_batch = torch.mean((y_batch - y_hat_batch)**2, 1)
+        zp_loss_batch = torch.sum(z**2, 1)
+
+        
+        theta_loss_batch = torch.mean((w5 - w5_cons)**2) + torch.mean((b5 - b5_cons)**2)  \
+                            + torch.mean((w6 - w6_cons)**2) + torch.mean((b6 - b6_cons)**2)  \
+                            + torch.mean((w7 - w7_cons)**2) + torch.mean((b7 - b7_cons)**2) 
+        # print(theta_loss_batch)
+
+        total_loss_batch_val = hparams.mloss1_weight * m_loss1_batch \
+                            + hparams.mloss2_weight * m_loss2_batch \
+                            + hparams.zprior_weight * zp_loss_batch \
+                            + hparams.theta_loss_weight * theta_loss_batch
+        best_keeper.report(x_hat_batch_val, total_loss_batch_val)
+
+    logging.info('vae_bayesian_Origin_Loss: %s', loss_plt)
+    logging.info('vae_bayesian_Bayesian_Loss: %s', loss_bayesian_plt)
+    return best_keeper.get_best()
