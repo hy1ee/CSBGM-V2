@@ -19,6 +19,7 @@ def main(hparams):
     if hparams.if_show_images:
         model_name = [  
                         'origin'
+                        # , 'cosamp'
                         , 'lasso'
                         # , 'vae'
                         # , 'vae_bayesian_last_layer'
@@ -52,6 +53,11 @@ def main(hparams):
             x_batch_hat = None
             if name == 'origin':    
                 continue
+
+            if name == 'cosamp':
+                x_batch_hat = mnist_estimators.cosamp_estimator(A, y_batch, hparams)
+                x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)
+                print(f"{name} model Completed")
 
             if name == 'lasso':
                 x_batch_hat = mnist_estimators.lasso_estimator(A, y_batch, hparams)
@@ -130,7 +136,7 @@ def main(hparams):
 
         utils.show_images(estimators_list,model_name, hparams)
 
-
+    cosamp_l2_loss, cosamp_measure_loss = 0,0 
     lasso_l2_loss, lasso_measure_loss = 0,0
     vae_l2_loss, vae_measure_loss = 0,0
 
@@ -166,6 +172,13 @@ def main(hparams):
             x_batch_hat = None
             if name == 'origin':    
                 continue
+            
+            if name == 'cosamp':
+                x_batch_hat = mnist_estimators.cosamp_estimator(A, y_batch, hparams)
+                # x_batch_hat = x_batch_hat.reshape(hparams.batch_size, 1, 28, 28)
+                cosamp_l2_loss += utils.get_l2_loss(x_batch_hat, x_batch)
+                cosamp_measure_loss += utils.get_measurement_loss(x_batch_hat, A, y_batch)
+                print(f"{name} model Completed")
 
             if name == 'lasso':
                 x_batch_hat = mnist_estimators.lasso_estimator(A, y_batch, hparams)
@@ -257,7 +270,8 @@ def main(hparams):
         if step >= hparams.steps:
             break
 
-    
+
+    print(f"cosamp | L2_loss:{np.mean(cosamp_l2_loss)} | Measurement_loss:{np.mean(cosamp_measure_loss)}")
     print(f"Lasso | L2_loss:{np.mean(lasso_l2_loss)} | Measurement_loss:{np.mean(lasso_measure_loss)}")
     
     print(f"vae | L2_loss:{np.mean(vae_l2_loss)} | Measurement_loss:{np.mean(vae_measure_loss)}")
@@ -302,6 +316,12 @@ if __name__ == '__main__':
 
     # get z
     PARSER.add_argument('--get_z_method', type=str, default='Gaussian', help='Relative Methods store in the utils.py')
+
+    # CoSaMP model Parameters
+    PARSER.add_argument('--cosamp_iter', type=int, default='1000', help='The iter of CoSaMP')
+    PARSER.add_argument('--sparsity_level', type=int, default='50', help='k-sparse')
+    PARSER.add_argument('--cosamp_tolerance', type=float, default='1e-6', help='The tolerance of CoSaMP')
+
 
     # Lasso model Parameters
     PARSER.add_argument('--lmbd', type=float, default='0.01', help='The lmbd of Lasso')

@@ -22,6 +22,47 @@ from cvxopt import matrix
 
 logging.basicConfig(filename='./variable_log.log', level=logging.DEBUG)
 
+def cosamp_estimator(A_val, y_batch_val, hparams):
+
+    def cosamp(A, y, hparams):
+        m, n = A.shape
+        x = np.zeros(n)
+        residual = y
+        selected_indices = set()
+
+        for _ in range(hparams.cosamp_iter):
+            proj = np.abs(np.dot(A.T, residual))
+            indices = np.argsort(proj)[::-1][:2 * hparams.sparsity_level]
+            selected_indices = selected_indices.union(set(indices))
+
+            x_sparse = np.linalg.lstsq(A[:, list(selected_indices)], y, rcond=None)[0]
+
+            indices = np.argsort(np.abs(x_sparse))[::-1][:hparams.sparsity_level]
+            selected_indices = set(np.array(list(selected_indices))[indices])
+
+            x.fill(0)
+            x[list(selected_indices)] = x_sparse[indices]
+
+            residual = y - np.dot(A[:, list(selected_indices)], x_sparse[indices])
+            if np.linalg.norm(residual) < hparams.cosamp_tolerance:
+                break
+
+        return x
+
+
+    x_hat_batch = []
+    for i in range(hparams.batch_size):
+        y_val = y_batch_val[i]
+
+        # CoSaMP estimation
+        x_hat = cosamp(A_val.numpy().T, y_val, hparams) 
+        # Normalize the estimated coefficients
+        x_hat = np.maximum(np.minimum(x_hat, 1), 0)
+
+        x_hat_batch.append(x_hat)
+    x_hat_batch = np.asarray(x_hat_batch)
+    return x_hat_batch
+
 
 def lasso_estimator(A_val, y_batch_val, hparams):
     x_hat_batch = []
