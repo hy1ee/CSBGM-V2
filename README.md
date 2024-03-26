@@ -1,4 +1,4 @@
-# CS-BGM v2
+# CS-BGM V2
 
 This repository provides code to reproduce results reported in the paper [Uncertainty Modeling in Generative Compressed Sensing](https://proceedings.mlr.press/v162/zhang22ai.html). 
 
