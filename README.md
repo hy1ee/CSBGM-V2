@@ -6,6 +6,7 @@ Portions of the codebase in this repository uses codes originally provided in th
 
 Static_flow_vae uses codes provided in the open-source [flow-VAE](https://github.com/fmu2/flow-VAE)
 
+
 ## Description
 1. Update some codes from the origin repository to pytorch
 2. Added some new models (mainly improvements combined with flow_based models) in CSBGM
