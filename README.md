@@ -16,18 +16,20 @@ Static_flow_vae uses codes provided in the open-source [flow-VAE](https://github
 ## Requirements: 
 ---
 
-1. Python 3.6
-2. Other packages when running codes. Please install them when the requirements are reported.
+1. Python 3.6 +
+2. Pytorch 1.12.1 + 
+3. Other packages when running codes. Please install them when the requirements are reported.
 
 
-### Preliminaries
+## Preliminaries
 ---
 
 You can run [main.py] in each folder to train model:
 NICE / RealNVP / VAE / AE_RealNVP / VAE_RealNVP(flow-VAE)
 
+Related estimation methods can be found in [mnist_estimators.py]
 
-### Demos
+## Demos
 ---
 
 run [compressed_sensing.py]
